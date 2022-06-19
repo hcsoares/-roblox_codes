@@ -1,0 +1,66 @@
+--Cabo1
+
+local part = script.Parent --conector do cabo
+local click = part.ClickDetector --variável que será usada no click_detecktor
+local model = part.Parent --model do cabo
+local anotherPart = nil --variável vazia
+if part.Name == "Terminal1" then 
+	anotherPart = model.Terminal2 --seta a anotherpart como terminal 2 
+else 
+	anotherPart = model.Terminal1 --seta a anotherpart como terminal 1
+end
+
+local function connect2Battery(otherPart) --conecção com toque
+	if otherPart.Name == '+' or otherPart.Name == '-' then --condição de entrada da função
+		part.Attachment2.RigidConstraint.Attachment1 = otherPart.Attachment2 --Rigid constraint recebe o attachment da outra part
+		part.ClickDetector.MaxActivationDistance = 32 --alcance do click
+		otherPart.CanTouch = false --A outra parte não pode mais ser tocada
+		local k = #_G.Fase1_Completa -- Recebe a condição da fase completa
+		local con1 = part.Attachment2.RigidConstraint.Attachment1 --variável recebe esse endereço
+		local con2 = anotherPart.Attachment2.RigidConstraint.Attachment1 -- variável recebe esse endereço
+		if con2 == nil then --não é
+		else
+			if con1.Parent.Parent == con2.Parent.Parent then 
+				if con2.Parent.Parent.Name == 'BoschBattery' then
+					if con1.Parent.Name == '+' and con2.Parent.Name == '-' then
+						local shortCircuit = Instance.new("Explosion")
+						shortCircuit.Position = part.Position
+						shortCircuit.Parent = game.Workspace
+						model:destroy()
+					end
+					if con1.Parent.Name == '-' and con2.Parent.Name == '+' then
+						local shortCircuit = Instance.new("Explosion")
+						shortCircuit.Position = part.Position
+						shortCircuit.Parent = game.Workspace
+						model:destroy()
+					end
+				end
+			else
+				_G.Fase1_Completa[k] = true
+				k+=1
+				_G.Fase1_Completa[k] = false
+				print(k)
+				if k == _G.Tamanho_Fase1_Completa then
+					_G.Corrente_Eletroima = true
+				end
+			end
+		end
+	end
+end
+
+part.Touched:Connect(connect2Battery)
+
+local function click2disconnect()
+	local otherPart = part.Attachment2.RigidConstraint.Attachment1.Parent
+	part.Attachment2.RigidConstraint.Attachment1 = nil
+	part.ClickDetector.MaxActivationDistance = 0
+	part.CanTouch = false
+	wait(5)
+	otherPart.CanTouch = true
+	part.CanTouch = true
+	local k = #_G.Fase1_Completa
+	_G.Fase1_Completa[k] = nil
+	_G.Fase1_Completa[k-1] = false
+end
+
+click.MouseClick:Connect(click2disconnect)

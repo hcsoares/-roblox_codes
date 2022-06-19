@@ -1,0 +1,11 @@
+--Colision sphere
+
+local part = script.Parent
+
+local function magForce(otherPart)
+	if otherPart.Material == Enum.Material.Metal and not otherPart.Anchored then
+		otherPart.AlignPosition.Attachment1 = part.Attachment
+	end
+end
+
+part.Touched:Connect(magForce)

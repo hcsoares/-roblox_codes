@@ -1,0 +1,40 @@
+--amperimetro
+
+local model = script.Parent  --referenciando o pai do script
+local R = nil  --Variável que representa a resistência
+local V = 12   --Variável que representa a tensão
+local I = nil  --Variável que representa a corrente
+local overLoad_Time = 0  -- Variável que representa o tempo de sobrecarga
+local played = false  --variável de estado
+_G.Corrente_Eletroima = false  --Variável que representa a corrente
+while(true)do
+	wait(1)  --Código para por um segundo
+	if _G.Corrente_Eletroima then
+		R = tonumber(model.Parent.Rheostat_1.Rheostat.Sign1.SurfaceGui.SIGN.Text)
+		I = math.floor(V/R*100)/100; --arredonda o valor da corrente
+		model.Ammemeter.Sign.SurfaceGui.SIGN.Text = tostring(I)
+		if I >= 2 and I <= 4 then --condição de funcionamento do sistema
+			overLoad_Time = 0  
+			game.Workspace.Fase1.Eletroima_Fase1.CollisionSphere.CanTouch = true -- Liga a colisão da esfera
+			game.Workspace.Fase1.Barreira1.AlignPosition.MaxForce = 1000000*(I-2)  --coloca força na esfera, desde que I=3
+			if not played then --entra se played for false
+				played = true --muda o estado de played
+				local sound = game.Workspace.Electric_shock --localisa o som no jogo
+				sound.SoundId = "rbxassetid://379557765"  --colca o Id do som
+				sound:Play() --Toca o som
+			end
+		elseif I > 4 then --caso a corrente seja maior do que 4
+			overLoad_Time += 1 --o valor do overload vai ser somado constantemente
+			model.Parent.BoschBattery.BlockConnectors.Fire.Enabled = true --liga o efeito de fogo
+			if overLoad_Time > 5 then -- se esse valor for maior do que 5
+				model.Parent.BoschBattery.BlockConnectors.Fire.Enabled = false --fogo apaga
+				local overload = Instance.new("Explosion") -- Comando de explosão
+				overload.Position = game.Workspace.Fase1.BoschBattery.BlockConnectors.Position --local da explosão
+				overload.Parent = game.Workspace -- pai da explosão
+				overload.BlastRadius = 30 -- raio da explosão
+				game.Workspace.Fase1.BoschBattery:Destroy() --destrói a bateria
+			end
+		end
+	end
+end
+

@@ -1,0 +1,66 @@
+--Cabo2
+
+local part = script.Parent
+local click = part.ClickDetector
+local model = part.Parent
+local anotherPart = nil
+if part.Name == "Terminal1" then
+	anotherPart = model.Terminal2
+else
+	anotherPart = model.Terminal1
+end
+
+local function connect2Battery(otherPart)
+	if otherPart.Name == '+' or otherPart.Name == '-' then
+		part.Attachment2.RigidConstraint.Attachment1 = otherPart.Attachment2
+		part.ClickDetector.MaxActivationDistance = 32
+		otherPart.CanTouch = false
+		local k = #_G.Fase1_Completa
+		local con1 = part.Attachment2.RigidConstraint.Attachment1
+		local con2 = anotherPart.Attachment2.RigidConstraint.Attachment1
+		if con2 == nil then
+		else
+			if con1.Parent.Parent == con2.Parent.Parent then
+				if con2.Parent.Parent.Name == 'BoschBattery' then
+					if con1.Parent.Name == '+' and con2.Parent.Name == '-' then
+						local shortCircuit = Instance.new("Explosion")
+						shortCircuit.Position = part.Position
+						shortCircuit.Parent = game.Workspace
+						model:destroy()
+					end
+					if con1.Parent.Name == '-' and con2.Parent.Name == '+' then
+						local shortCircuit = Instance.new("Explosion")
+						shortCircuit.Position = part.Position
+						shortCircuit.Parent = game.Workspace
+						model:destroy()
+					end
+				end
+			else
+				_G.Fase1_Completa[k] = true
+				k+=1
+				_G.Fase1_Completa[k] = false
+				print(k)
+				if k == _G.Tamanho_Fase1_Completa then
+					game.Workspace.Fase1.Eletroima_Fase1.CollisionSphere.CanTouch = true
+				end
+			end
+		end
+	end
+end
+
+part.Touched:Connect(connect2Battery)
+
+local function click2disconnect()
+	local otherPart = part.Attachment2.RigidConstraint.Attachment1.Parent
+	part.Attachment2.RigidConstraint.Attachment1 = nil
+	part.ClickDetector.MaxActivationDistance = 0
+	part.CanTouch = false
+	wait(5)
+	otherPart.CanTouch = true
+	part.CanTouch = true
+	local k = #_G.Fase1_Completa
+	_G.Fase1_Completa[k] = nil
+	_G.Fase1_Completa[k-1] = false
+end
+
+click.MouseClick:Connect(click2disconnect)
